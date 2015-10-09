@@ -32,7 +32,7 @@
 		778F2D521BC72945003D1D64 /* pathing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pathing.h; sourceTree = "<group>"; };
 		77F3EBB71BC7FB6B003B3E04 /* loaded_map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = loaded_map.cpp; sourceTree = "<group>"; };
 		77F3EBB81BC7FB6B003B3E04 /* loaded_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = loaded_map.h; sourceTree = "<group>"; };
-		77F3EBBA1BC83E31003B3E04 /* .gitigore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitigore; sourceTree = "<group>"; };
+		77F3EBBB1BC84012003B3E04 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,7 +51,7 @@
 			children = (
 				770967AD1BC5846500F3BAFA /* paradox_problem */,
 				770967AC1BC5846500F3BAFA /* Products */,
-				77F3EBBA1BC83E31003B3E04 /* .gitigore */,
+				77F3EBBB1BC84012003B3E04 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
