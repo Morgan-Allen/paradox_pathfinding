@@ -2,6 +2,7 @@
 
 https://paradox.kattis.com/problems/paradoxpath
 
+http://cboard.cprogramming.com/cplusplus-programming/59374-viewing-directory-structure-cplusplus.html
 
 http://stackoverflow.com/questions/266168/simple-example-of-threading-in-c
 http://en.cppreference.com/w/cpp/thread/thread
@@ -9,17 +10,9 @@ http://stackoverflow.com/questions/4989451/mutex-example-tutorial
 
 
 
+
 void performSearchInThread() {
-    
 }
-
-
-
-if ((*found).x == 1 && (*found).y == 3) {
-std::cout << "CHECK HERE";
-}
-
-//  TODO:  ONLY DELETE IF CURRENTLY ON THE AGENDA!
 
 
 void setupThreads(MapSearch &map) {

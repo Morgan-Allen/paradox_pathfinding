@@ -18,7 +18,9 @@
 //  run.  (Also, my C/++ is pretty rusty, so apologies to anyone reading.)
 
 
-#define verbose false
+#define verbose true
+#define pathLimit 20
+#define shouldLimitPath pathLimit > 0
 
 
 /*  Basic class definitions, setup and support functions first.  In essence,
@@ -208,7 +210,8 @@ int FindPath(
     
     addToAgenda(*starts, search, *target, nullptr);
     
-    int safeLimit = search.wide + search.high * 100, stepCount = 0;
+    int safeLimit = (search.wide * search.high * 2), stepCount = 0;
+    if (shouldLimitPath && safeLimit > pathLimit) safeLimit = pathLimit;
     
     while (search.agenda.size() > 0 && stepCount++ < safeLimit) {
         Entry* next = *(search.agenda.rbegin());
@@ -224,6 +227,20 @@ int FindPath(
             best = next;
         }
         addAdjacentEntries(*next, *target, search);
+        
+        
+        std::cout << "\n  Map display: ";
+        for (int y = nMapWidth; y-- > 0;) {
+            std::cout << "\n    ";
+            for (int x = 0; x < nMapHeight; x++) {
+                Entry* at = entryAt(x, y, search);
+                char tile = (*at).blocked ? '@' : '.';
+                
+                if ((*at).state == OPEN) tile = '?';
+                if ((*at).state == USED) tile = 'X';
+                std::cout << " " << tile;
+            }
+        }
     }
     
     std::list <Entry*> path;

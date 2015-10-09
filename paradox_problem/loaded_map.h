@@ -18,9 +18,11 @@ struct LoadedMap {
     int mapHigh;
     unsigned char *mapData;
     
-    int origX, origY, destX, destY;
+    int origX = -1, origY = -1, destX = -1, destY = -1;
 };
 
+
+LoadedMap* loadMapFrom(const char* fileName, LoadedMap &map);
 
 
 #endif /* defined(__paradox_problem__loaded_map__) */
