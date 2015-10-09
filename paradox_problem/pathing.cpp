@@ -20,7 +20,7 @@
 
 #define verbose true
 #define pathLimit 20
-#define shouldLimitPath pathLimit > 0
+#define shouldLimitPath false
 
 
 /*  Basic class definitions, setup and support functions first.  In essence,
@@ -50,7 +50,7 @@ struct Entry {
 
 struct Comparison {
     bool operator() (const Entry* a, const Entry* b) const {
-        return (*a).costTotal > (*b).costTotal;
+        return (*a).costTotal < (*b).costTotal;
     }
 };
 
@@ -66,6 +66,7 @@ struct MapSearch {
     const unsigned char *passGrid;
     
     std::multiset <Entry*, Comparison> agenda;
+    int pushCount = 0;
 };
 
 
@@ -115,10 +116,44 @@ void printAgenda(const char *intro, MapSearch &search) {
     //  descending order of estimated pathing-cost.
     for (auto const& next : search.agenda) {
         float cost = (*next).costTotal;
+        Entry *gridded = entryAt((*next).x, (*next).y, search);
+        
         printEntry("\n    ", *next, false);
         std::cout << " (" << cost << ")";
-        if (lastCost != -1 && cost > lastCost) std::cout << " OUT OF ORDER";
+        
+        if (gridded != next) std::cout << " MISMATCH WITH GRID";
+        if (lastCost != -1 && cost < lastCost) std::cout << " OUT OF ORDER";
         lastCost = cost;
+    }
+}
+
+
+void printMap(MapSearch &search) {
+    if (! verbose) return;
+    
+    std::cout << "\n  Map display: ";
+    int numOpen = 0;
+    for (int y = search.wide; y-- > 0;) {
+        std::cout << "\n    ";
+        for (int x = 0; x < search.high; x++) {
+            Entry* at = entryAt(x, y, search);
+            Entry* match = *(search.agenda.find(at));
+            
+            char tile = (*at).blocked ? '@' : '.';
+            int mode = 0;
+            
+            if ((*at).state == OPEN) mode = 1;
+            if ((*at).state == USED) mode = 5;
+            if (match == at) mode += 2;
+            if (mode > 0) tile = '0' + mode;
+            std::cout << " " << tile;
+            
+            if ((*at).state == OPEN) numOpen++;
+        }
+    }
+    if (numOpen != search.agenda.size()) {
+        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT!";
+        std::cout.flush();
     }
 }
 
@@ -147,13 +182,14 @@ static const int
 
 float guessTravelCost(Entry &orig, Entry &dest) {
     float xd = orig.x - dest.x, yd = orig.y - dest.y;
-    return fabs(xd) + fabs(yd);
+    return (fabs(xd) + fabs(yd)) * 0.8f;
 }
 
 
 void deleteFromAgenda(Entry &entry, MapSearch &search) {
     search.agenda.erase(search.agenda.find(&entry));
     entry.state = USED;
+    search.pushCount--;
 }
 
 
@@ -172,9 +208,17 @@ bool addToAgenda(
     adjacent.costAfter  = costAfter;
     adjacent.costTotal  = costBefore + costAfter;
     adjacent.state      = OPEN;
+    
     search.agenda.emplace(&adjacent);
+    search.pushCount++;
     
     printEntry("\n  Pushed to agenda: ", adjacent, true);
+    
+    if (search.pushCount != search.agenda.size()) {
+        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT!";
+        std::cout.flush();
+        exit(0);
+    }
     return true;
 }
 
@@ -213,11 +257,18 @@ int FindPath(
     int safeLimit = (search.wide * search.high * 2), stepCount = 0;
     if (shouldLimitPath && safeLimit > pathLimit) safeLimit = pathLimit;
     
-    while (search.agenda.size() > 0 && stepCount++ < safeLimit) {
-        Entry* next = *(search.agenda.rbegin());
+    while (search.agenda.size() > 0) {
+        if (stepCount++ >= safeLimit) {
+            std::cout << "\n\n RAN OUT OF STEPS: " << safeLimit;
+            break;
+        }
+        if (stepCount % 10 == 1) printMap(search);
+        
         printAgenda("\n\nBEGINNING NEXT STEP...", search);
+        Entry* next = *(search.agenda.cbegin());
         deleteFromAgenda(*next, search);
         printEntry("\n\nNext entry is: ", *next, true);
+        
         if (next == target) {
             success = true;
             best    = next;
@@ -226,21 +277,8 @@ int FindPath(
         else if ((*best).costAfter > (*next).costAfter) {
             best = next;
         }
+        
         addAdjacentEntries(*next, *target, search);
-        
-        
-        std::cout << "\n  Map display: ";
-        for (int y = nMapWidth; y-- > 0;) {
-            std::cout << "\n    ";
-            for (int x = 0; x < nMapHeight; x++) {
-                Entry* at = entryAt(x, y, search);
-                char tile = (*at).blocked ? '@' : '.';
-                
-                if ((*at).state == OPEN) tile = '?';
-                if ((*at).state == USED) tile = 'X';
-                std::cout << " " << tile;
-            }
-        }
     }
     
     std::list <Entry*> path;
@@ -254,6 +292,7 @@ int FindPath(
         "\n\nSEARCH FAILED, CLOSEST APPROACH WAS...",
         path, search
     );
+    printMap(search);
     
     if (success) {
         int outCounter = 0, pathLength = (int) path.size();

@@ -57,14 +57,11 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     
     int output[outputLen];
     
-    //const int result = -1;
-    //*
     const int result = FindPath(
         map.origX, map.origY, map.destX, map.destY,
         map.mapData, map.mapWide, map.mapHigh,
         output, outputLen
     );
-    //*/
     
     std::cout << "\n\n\nSearch completed.";
     std::cout << "\n  Path length: " << result;
@@ -98,7 +95,7 @@ void attemptPathing(LoadedMap &map, int outputLen) {
 int main(int argc, const char * argv[]) {
     LoadedMap map;
     loadMapFrom("pathing maps/simple_map.map", map);
-    attemptPathing(map, 20);
+    attemptPathing(map, 200);
 }
 
 

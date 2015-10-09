@@ -70,10 +70,10 @@
 		770967AD1BC5846500F3BAFA /* paradox_problem */ = {
 			isa = PBXGroup;
 			children = (
-				778F2D521BC72945003D1D64 /* pathing.h */,
 				778F2D511BC72945003D1D64 /* pathing.cpp */,
-				77F3EBB81BC7FB6B003B3E04 /* loaded_map.h */,
+				778F2D521BC72945003D1D64 /* pathing.h */,
 				77F3EBB71BC7FB6B003B3E04 /* loaded_map.cpp */,
+				77F3EBB81BC7FB6B003B3E04 /* loaded_map.h */,
 				770967AE1BC5846500F3BAFA /* main.cpp */,
 				778F2D501BC727E6003D1D64 /* notes.txt */,
 			);
