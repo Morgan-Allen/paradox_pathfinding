@@ -18,7 +18,7 @@
 //  run.  (Also, my C/++ is pretty rusty, so apologies to anyone reading.)
 
 
-#define verbose true
+#define verbose false
 #define pathLimit 20
 #define shouldLimitPath false
 
@@ -146,7 +146,7 @@ void printMap(MapSearch &search) {
             if ((*at).state == USED) mode = 5;
             if (match == at) mode += 2;
             if (mode > 0) tile = '0' + mode;
-            std::cout << " " << tile;
+            std::cout << tile;
             
             if ((*at).state == OPEN) numOpen++;
         }

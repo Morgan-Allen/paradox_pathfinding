@@ -22,7 +22,13 @@ struct LoadedMap {
 };
 
 
+void attemptPathing(LoadedMap &map, int outputLen);
+void testAllMapsInDirectory(const char* dirPath);
 LoadedMap* loadMapFrom(const char* fileName, LoadedMap &map);
 
 
 #endif /* defined(__paradox_problem__loaded_map__) */
+
+
+
+

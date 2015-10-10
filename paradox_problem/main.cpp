@@ -12,8 +12,10 @@
 
 
 
-void attemptPathing(LoadedMap &map, int outputLen) {
-    std::cout << "\n\nWill now attempt A* search.";
+
+int main(int argc, const char * argv[]) {
+    
+    
     
     /*
     const int
@@ -55,55 +57,12 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     int outLen = 12, output[outLen];
     //*/
     
-    int output[outputLen];
+    //LoadedMap map;
+    //loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
+    //attemptPathing(map, 200);
     
-    const int result = FindPath(
-        map.origX, map.origY, map.destX, map.destY,
-        map.mapData, map.mapWide, map.mapHigh,
-        output, outputLen
-    );
-    
-    std::cout << "\n\n\nSearch completed.";
-    std::cout << "\n  Path length: " << result;
-    std::cout << " (" << (result >= 0 ? "passed" : "failed") << ")";
-    
-    unsigned char* data = map.mapData;
-    
-    std::cout << "\n  Output indices: ";
-    if (result >= 0) for (int n = 0; n < outputLen && n < result; n++) {
-        std::cout << "\n    " << output[n];
-        data[output[n]] = '*';
-    }
-    else std::cout << "None";
-    
-    data[indexFor(map.origX, map.origY, map.mapWide, map.mapHigh)] = '0';
-    data[indexFor(map.destX, map.destY, map.mapWide, map.mapHigh)] = 'X';
-    
-    std::cout << "\n  Map display: ";
-    for (int y = map.mapHigh; y-- > 0;) {
-        std::cout << "\n    ";
-        for (int x = 0; x < map.mapWide; x++) {
-            char at = data[indexFor(x, y, map.mapWide, map.mapHigh)];
-            if (at == 1) at = '.';
-            if (at == 0) at = '@';
-            std::cout << " " << at;
-        }
-    }
+    testAllMapsInDirectory("pathing maps/room_maps/");
 }
-
-
-int main(int argc, const char * argv[]) {
-    LoadedMap map;
-    loadMapFrom("pathing maps/simple_map.map", map);
-    attemptPathing(map, 200);
-}
-
-
-
-
-
-
-
 
 
 
