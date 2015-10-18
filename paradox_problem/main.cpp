@@ -31,6 +31,20 @@ int main(int argc, const char * argv[]) {
     int outLen = 20, output[outLen];
     //*/
     
+    
+    /*
+    const int
+      mapW   = 3, mapH   = 3,
+      startX = 2, startY = 0,
+      endX   = 0, endY   = 2;
+    unsigned char map[] = {
+        0, 0, 1,
+        0, 1, 1,
+        1, 0, 1
+    };
+    int outLen = 12, output[outLen];
+    //*/
+    
     /*
     unsigned char mapData[] = {
         1, 1, 1, 1,
@@ -49,25 +63,6 @@ int main(int argc, const char * argv[]) {
     //*/
     
     /*
-    const int
-      mapW   = 3, mapH   = 3,
-      startX = 2, startY = 0,
-      endX   = 0, endY   = 2;
-    unsigned char map[] = {
-        0, 0, 1,
-        0, 1, 1,
-        1, 0, 1
-    };
-    int outLen = 12, output[outLen];
-    //*/
-    
-    //LoadedMap map;
-    //loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
-    //attemptPathing(map, 200);
-    
-    //testAllMapsInDirectory("pathing maps/room_maps/");
-    
-    //*
     unsigned char pMap[] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
@@ -147,6 +142,13 @@ int main(int argc, const char * argv[]) {
     map.mapHigh = 64;
     attemptPathing(map, 100);
     //*/
+    
+    
+    //LoadedMap map;
+    //loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
+    //attemptPathing(map, 200);
+    
+    testAllMapsInDirectory("pathing maps/room_maps/");
 }
 
 

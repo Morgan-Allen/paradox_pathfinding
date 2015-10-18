@@ -13,6 +13,7 @@
 #include <vector>
 #include <cstdlib>
 #include <time.h>
+#include <chrono>
 
 #include "loaded_map.h"
 #include "pathing.h"
@@ -23,15 +24,19 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     std::cout << "\n\nWill now attempt A* search...";
     
     int output[outputLen];
+    auto start = std::chrono::high_resolution_clock::now();
     
     const int result = FindPath(
         map.origX, map.origY, map.destX, map.destY,
         map.mapData, map.mapWide, map.mapHigh,
         output, outputLen
     );
+    auto end = std::chrono::high_resolution_clock::now();
+    long long taken = std::chrono::duration_cast <std::chrono::milliseconds> (end - start).count();
     
     std::cout << "\n  Search completed.";
     std::cout << "\n  Path length: " << result;
+    std::cout << "\n  Time taken (ms): " << taken;
     std::cout << " (" << (result >= 0 ? "passed" : "failed") << ")";
     
     if (map.mapWide >= 100) return;
