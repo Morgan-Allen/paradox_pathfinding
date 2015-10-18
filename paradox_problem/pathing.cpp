@@ -11,6 +11,7 @@
 #include <thread>
 #include <set>
 #include <list>
+#include <queue>
 #include <math.h>
 
 
@@ -18,6 +19,7 @@
 //  run.  (Also, my C/++ is pretty rusty, so apologies to anyone reading.)
 
 
+#define printResult false
 #define verbose false
 #define pathLimit 20
 #define shouldLimitPath false
@@ -32,6 +34,10 @@ static const int
   GRID =  0,
   OPEN =  1,
   USED =  2;
+
+inline int indexFor(const int x, const int y, const int wide, const int high) {
+    return (y * wide) + x;
+}
 
 struct Entry {
     
@@ -50,14 +56,9 @@ struct Entry {
 
 struct Comparison {
     bool operator() (const Entry* a, const Entry* b) const {
-        return (*a).costTotal < (*b).costTotal;
+        return (*a).costTotal > (*b).costTotal;
     }
 };
-
-
-inline int indexFor(const int x, const int y, const int wide, const int high) {
-    return (y * wide) + x;
-}
 
 
 struct MapSearch {
@@ -65,7 +66,7 @@ struct MapSearch {
     Entry *entryGrid;
     const unsigned char *passGrid;
     
-    std::multiset <Entry*, Comparison> agenda;
+    std::priority_queue <Entry*, std::vector <Entry*>, Comparison> agenda;
     int pushCount = 0;
 };
 
@@ -87,8 +88,8 @@ Entry* entryAt(int x, int y, MapSearch &search) {
 }
 
 
-void printEntry(const char *intro, Entry &entry, bool longForm) {
-    if (! verbose) return;
+void printEntry(const char *intro, Entry &entry, bool longForm, bool allowed) {
+    if (! allowed) return;
     if (! longForm) {
         std::cout << intro << entry.x << "|" << entry.y; return;
     }
@@ -107,18 +108,22 @@ void printEntry(const char *intro, Entry &entry, bool longForm) {
 }
 
 
-void printAgenda(const char *intro, MapSearch &search) {
-    if (! verbose) return;
+void printAgenda(const char *intro, MapSearch &search, bool allowed) {
+    if (! allowed) return;
     std::cout << intro << "\n  Agenda size: " << search.agenda.size() << "";
     float lastCost = -1;
+    std::priority_queue <Entry*, std::vector<Entry*>, Comparison> copy = search.agenda;
     //
     //  We now print all entries on the agenda in what should be a strictly
     //  descending order of estimated pathing-cost.
-    for (auto const& next : search.agenda) {
+    while (copy.size() > 0) {
+        Entry *next = copy.top();
+        copy.pop();
+        
         float cost = (*next).costTotal;
         Entry *gridded = entryAt((*next).x, (*next).y, search);
         
-        printEntry("\n    ", *next, false);
+        printEntry("\n    ", *next, false, allowed);
         std::cout << " (" << cost << ")";
         
         if (gridded != next) std::cout << " MISMATCH WITH GRID";
@@ -128,42 +133,46 @@ void printAgenda(const char *intro, MapSearch &search) {
 }
 
 
-void printMap(MapSearch &search) {
-    if (! verbose) return;
+void printMap(MapSearch &search, bool allowed) {
+    if (! allowed) return;
     
     std::cout << "\n  Map display: ";
     int numOpen = 0;
-    for (int y = search.wide; y-- > 0;) {
+    for (int y = search.high; y-- > 0;) {
         std::cout << "\n    ";
-        for (int x = 0; x < search.high; x++) {
+        for (int x = 0; x < search.wide; x++) {
             Entry* at = entryAt(x, y, search);
-            Entry* match = *(search.agenda.find(at));
             
             char tile = (*at).blocked ? '@' : '.';
             int mode = 0;
             
             if ((*at).state == OPEN) mode = 1;
             if ((*at).state == USED) mode = 5;
-            if (match == at) mode += 2;
             if (mode > 0) tile = '0' + mode;
-            std::cout << tile;
+            std::cout << tile << " ";
             
             if ((*at).state == OPEN) numOpen++;
         }
     }
     if (numOpen != search.agenda.size()) {
-        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT!";
+        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT (WHEN PRINTING) ";
+        std::cout << "\n  Agenda size:  " << search.agenda.size();
+        std::cout << "\n  Push count:   " << search.pushCount;
+        std::cout << "\n  Open on grid: " << numOpen << "\n\n";
         std::cout.flush();
+        exit(0);
     }
 }
 
 
-void printPath(const char *intro, std::list<Entry*> path, MapSearch &search) {
-    if (! verbose) return;
+void printPath(
+    const char *intro, std::list<Entry*> path, MapSearch &search, bool allowed
+) {
+    if (! allowed) return;
     std::cout << intro << "\n  Path length: " << path.size() << "";
     for (auto const& step : path) {
         const int x = (*step).x, y = (*step).y;
-        printEntry("\n  ", *step, false);
+        printEntry("\n  ", *step, false, allowed);
         std::cout << " (" << indexFor(x, y, search.wide, search.high) << ")";
     }
 }
@@ -186,21 +195,12 @@ float guessTravelCost(Entry &orig, Entry &dest) {
 }
 
 
-void deleteFromAgenda(Entry &entry, MapSearch &search) {
-    search.agenda.erase(search.agenda.find(&entry));
-    entry.state = USED;
-    search.pushCount--;
-}
-
-
 bool addToAgenda(
     Entry &adjacent, MapSearch &search, Entry &target, Entry* prior
 ) {
     const float olderCost  = adjacent.costBefore;
     const float costBefore = prior ? ((*prior).costBefore + ENTER_COST) : 0;
-    
-    if (olderCost >= 0 && olderCost <= costBefore) return false;
-    if (adjacent.state == OPEN) deleteFromAgenda(adjacent, search);
+    if (olderCost >= 0) return false;
     
     const float costAfter = guessTravelCost(adjacent, target);
     adjacent.prior      = prior;
@@ -209,13 +209,14 @@ bool addToAgenda(
     adjacent.costTotal  = costBefore + costAfter;
     adjacent.state      = OPEN;
     
-    search.agenda.emplace(&adjacent);
+    search.agenda.push(&adjacent);
     search.pushCount++;
     
-    printEntry("\n  Pushed to agenda: ", adjacent, true);
+    printEntry("\n  Pushed to agenda: ", adjacent, true, verbose);
     
     if (search.pushCount != search.agenda.size()) {
-        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT!";
+        std::cout << "\n\nERROR WITH AGENDA MANAGEMENT (WHEN ADDING) ";
+        std::cout << search.agenda.size() << "=/=" << search.pushCount;
         std::cout.flush();
         exit(0);
     }
@@ -230,6 +231,15 @@ void addAdjacentEntries(Entry &point, Entry &target, MapSearch &search) {
         if (adjacent == nullptr || (*adjacent).blocked) continue;
         addToAgenda(*adjacent, search, target, &point);
     }
+}
+
+
+Entry* popBestOffAgenda(MapSearch &search) {
+    Entry* next = search.agenda.top();
+    search.agenda.pop();
+    search.pushCount--;
+    (*next).state = USED;
+    return next;
 }
 
 
@@ -249,8 +259,8 @@ int FindPath(
     Entry* target  = entryAt(nTargetX, nTargetY, search);
     Entry* best    = starts;
     bool   success = false;
-    printEntry("\n\nTARGET POINT IS:   ", *target, true);
-    printEntry("\n\nSTARTING POINT IS: ", *starts, true);
+    printEntry("\n\nTARGET POINT IS:   ", *target, true, verbose);
+    printEntry("\n\nSTARTING POINT IS: ", *starts, true, verbose);
     
     addToAgenda(*starts, search, *target, nullptr);
     
@@ -262,12 +272,12 @@ int FindPath(
             std::cout << "\n\n RAN OUT OF STEPS: " << safeLimit;
             break;
         }
-        if (stepCount % 10 == 1) printMap(search);
+        if (stepCount % 10 == 1) printMap(search, verbose);
         
-        printAgenda("\n\nBEGINNING NEXT STEP...", search);
-        Entry* next = *(search.agenda.cbegin());
-        deleteFromAgenda(*next, search);
-        printEntry("\n\nNext entry is: ", *next, true);
+        printAgenda("\n\nBEGINNING NEXT STEP...", search, verbose);
+        Entry* next = popBestOffAgenda(search);
+        
+        printEntry("\n\nNext entry is: ", *next, true, verbose);
         
         if (next == target) {
             success = true;
@@ -290,9 +300,9 @@ int FindPath(
     printPath(success ?
         "\n\nCOMPLETE PATH FOUND..." :
         "\n\nSEARCH FAILED, CLOSEST APPROACH WAS...",
-        path, search
+        path, search, verbose || printResult
     );
-    printMap(search);
+    printMap(search, verbose || printResult);
     
     if (success) {
         int outCounter = 0, pathLength = (int) path.size();

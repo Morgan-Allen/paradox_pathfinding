@@ -55,7 +55,7 @@ void attemptPathing(LoadedMap &map, int outputLen) {
             char at = data[indexFor(x, y, map.mapWide, map.mapHigh)];
             if (at == 1) at = '.';
             if (at == 0) at = '@';
-            std::cout << at;
+            std::cout << at << " ";
         }
     }
 }

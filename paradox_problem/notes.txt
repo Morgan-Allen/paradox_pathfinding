@@ -1,8 +1,8 @@
 
 
 https://paradox.kattis.com/problems/paradoxpath
+http://www.movingai.com/benchmarks/
 
-http://cboard.cprogramming.com/cplusplus-programming/59374-viewing-directory-structure-cplusplus.html
 
 http://stackoverflow.com/questions/266168/simple-example-of-threading-in-c
 http://en.cppreference.com/w/cpp/thread/thread
