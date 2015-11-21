@@ -130,19 +130,16 @@ int main(int argc, const char * argv[]) {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
     
-    
-    
     LoadedMap map;
     map.mapData = pMap;
-    map.origX = 20;
-    map.origY = 25;
-    map.destX = 50;
-    map.destY = 50;
     map.mapWide = 64;
     map.mapHigh = 64;
+    map.origX   = 20;
+    map.origY   = 25;
+    map.destX   = 50;
+    map.destY   = 50;
     attemptPathing(map, 100);
     //*/
-    
     
     //LoadedMap map;
     //loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);

@@ -15,18 +15,13 @@
 #include <math.h>
 
 
-//  NOTE:  Multi-threading considerations not implemented yet.  This is a trial
-//  run.  (Also, my C/++ is pretty rusty, so apologies to anyone reading.)
-
-//  TODO:  You need to deallocate any used memory afterward!
-//  TODO:  You should consider moving the 'state' flag from the entry to the
-//         grid.
-
+//  NOTE:  Multi-threading not implemented yet.  This is a trial run.  (Also,
+//  my C/++ is pretty rusty, so apologies to anyone reading.)
 
 
 /*  Basic class definitions, setup and support functions first.  In essence,
- *  I'm planning to insert an Entry for every tile of the grid (whether used or
- *  not,) as either actual or potential steps in the search.
+ *  I'm planning to insert an Entry for every tile of the grid that's touched
+ *  by the search.
  */
 static const int
   INIT =  0,
@@ -50,7 +45,6 @@ struct Entry {
     float costAfter  = -1;
     float costTotal  = -1;
 };
-
 
 struct Comparison {
     bool operator() (const Entry* a, const Entry* b) const {
@@ -83,6 +77,17 @@ void initMap(
     map.usageBitmap = new unsigned char[mapArea];
     map.entryGrid   = new Entry*       [mapArea];
     for (int n = mapArea; n-- > 0;) map.usageBitmap[n] = INIT;
+}
+
+
+void cleanupMap(MapSearch &map) {
+    for (int n = map.wide * map.high; n-- > 0;) {
+        if (map.usageBitmap[n] == INIT) continue;
+        Entry* made = map.entryGrid[n];
+        delete made;
+    }
+    delete map.entryGrid;
+    delete map.usageBitmap;
 }
 
 
@@ -329,18 +334,29 @@ int FindPath(
     printMap(search);
     #endif
     
+    int pathLength = -1;
+    
     if (success) {
-        int outCounter = 0, pathLength = (int) path.size();
+        pathLength = (int) path.size();
+        int outCounter = 0;
         while (path.size() > 0 && outCounter < nOutBufferSize) {
             Entry next = *path.front();
             path.pop_front();
             int index = indexFor(next.x, next.y, search.wide, search.high);
             pOutBuffer[outCounter++] = index;
         }
-        return pathLength;
     }
-    else return -1;
+    cleanupMap(search);
+    return pathLength;
 }
+
+
+
+
+
+
+
+
 
 
 
