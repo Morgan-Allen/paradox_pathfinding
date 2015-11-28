@@ -19,31 +19,34 @@
 //  my C/++ is pretty rusty, so apologies to anyone reading.)
 
 
-/*  Basic class definitions, setup and support functions first.  In essence,
- *  I'm planning to insert an Entry for every tile of the grid that's touched
- *  by the search.
+/*  Basic class definitions, setup and support functions first.
  */
 static const int
-  INIT =  0,
-  GRID =  1,
-  OPEN =  2,
-  USED =  3;
+  INIT    =  0,
+  OPEN    =  1,
+  BLOCKED =  2,
+  USED    =  3;
 
 inline int indexFor(const int x, const int y, const int wide, const int high) {
     return (y * wide) + x;
 }
 
+inline int xFromGrid(const int gridIndex, const int wide) {
+    return (gridIndex % wide);
+}
+
+inline int yFromGrid(const int gridIndex, const int wide) {
+    return (gridIndex / wide);
+}
+
 struct Entry {
     
     //  Permanent data-
-    bool blocked;
-    int  x, y, gridIndex;
+    int x, y, gridIndex;
     
     //  Mutable search-related data-
-    Entry *prior     = nullptr;
-    float costBefore = -1;
-    float costAfter  = -1;
-    float costTotal  = -1;
+    Entry *prior;
+    int costTotal, costBefore, costAfter;
 };
 
 struct Comparison {
@@ -52,6 +55,7 @@ struct Comparison {
     }
 };
 
+typedef std::list<Entry*> List;
 typedef std::priority_queue <Entry*, std::vector <Entry*>, Comparison> Agenda;
 
 
@@ -60,7 +64,7 @@ struct MapSearch {
     const unsigned char *rawData;
     unsigned char *usageBitmap;
     
-    Entry** entryGrid;
+    List visited;
     Agenda agenda;
 };
 
@@ -75,18 +79,14 @@ void initMap(
     
     const int mapArea = mapWide * mapHigh;
     map.usageBitmap = new unsigned char[mapArea];
-    map.entryGrid   = new Entry*       [mapArea];
     for (int n = mapArea; n-- > 0;) map.usageBitmap[n] = INIT;
 }
 
 
 void cleanupMap(MapSearch &map) {
-    for (int n = map.wide * map.high; n-- > 0;) {
-        if (map.usageBitmap[n] == INIT) continue;
-        Entry* made = map.entryGrid[n];
-        delete made;
+    for (auto const& entry : map.visited) {
+        delete entry;
     }
-    delete map.entryGrid;
     delete map.usageBitmap;
 }
 
@@ -97,17 +97,18 @@ Entry* entryAt(const int x, const int y, MapSearch &search) {
     if (y >= search.high) return nullptr;
     
     const int index = indexFor(x, y, search.wide, search.high);
-    if (search.usageBitmap[index] != INIT) {
-        return search.entryGrid[index];
+    if (search.usageBitmap[index] != INIT) return nullptr;
+    
+    if (search.rawData[index] == 0) {
+        search.usageBitmap[index] = BLOCKED;
+        return nullptr;
     }
     
     Entry* made = new Entry;
     (*made).gridIndex = index;
-    (*made).x         = x;
-    (*made).y         = y;
-    (*made).blocked   = (search.rawData[index] == 0);
-    search.usageBitmap[index] = GRID;
-    search.entryGrid  [index] = made;
+    //(*made).x         = x;
+    //(*made).y         = y;
+    search.usageBitmap[index] = OPEN;
     return made;
 }
 
@@ -150,14 +151,11 @@ void printAgenda(const char *intro, MapSearch &search) {
     while (copy.size() > 0) {
         Entry *next = copy.top();
         copy.pop();
-        
         float cost = (*next).costTotal;
-        Entry *gridded = entryAt((*next).x, (*next).y, search);
         
         printEntry("\n    ", *next, false);
         std::cout << " (" << cost << ")";
         
-        if (gridded != next) std::cout << " MISMATCH WITH GRID";
         if (lastCost != -1 && cost < lastCost) std::cout << " OUT OF ORDER";
         lastCost = cost;
     }
@@ -171,16 +169,14 @@ void printMap(MapSearch &search) {
     for (int y = search.high; y-- > 0;) {
         std::cout << "\n    ";
         for (int x = 0; x < search.wide; x++) {
-            Entry* at = entryAt(x, y, search);
+            int index = indexFor(x, y, search.wide, search.high);
+            int data  = search.rawData    [index];
+            int grid  = search.usageBitmap[index];
             
-            char tile = (*at).blocked ? '@' : '.';
-            int mode = search.usageBitmap[(*at).gridIndex];
-            
-            if (mode == OPEN) numOpen++;
-            
-            if (mode > GRID) tile = '0' + mode - GRID;
+            char tile = data == 0 ? '@' : '.';
+            if (grid == OPEN) numOpen++;
+            if (grid > INIT) tile = '0' + grid - INIT;
             std::cout << tile << " ";
-            
         }
     }
     if (numOpen != search.agenda.size()) {
@@ -194,7 +190,7 @@ void printMap(MapSearch &search) {
 
 
 void printPath(
-    const char *intro, std::list<Entry*> path, MapSearch &search
+    const char *intro, List path, MapSearch &search
 ) {
     std::cout << intro << "\n  Path length: " << path.size() << "";
     for (auto const& step : path) {
@@ -216,20 +212,20 @@ static const int
     Y_ADJ[]    = {  0,  1,  0, -1 };
 
 
-float guessTravelCost(Entry &orig, Entry &dest) {
-    float xd = orig.x - dest.x, yd = orig.y - dest.y;
-    return (fabs(xd) + fabs(yd)) * 0.8f;
+int guessTravelCost(Entry &orig, int targX, int targY) {
+    int xd = orig.x - targX, yd = orig.y - targY;
+    return abs(xd) + abs(yd);
 }
 
 
 bool addToAgenda(
-    Entry &adjacent, MapSearch &search, Entry &target, Entry* prior
+    Entry &adjacent, Entry* prior, int targX, int targY, MapSearch &search
 ) {
     const float olderCost  = adjacent.costBefore;
     const float costBefore = prior ? ((*prior).costBefore + ENTER_COST) : 0;
     if (olderCost >= 0) return false;
     
-    const float costAfter = guessTravelCost(adjacent, target);
+    const float costAfter = guessTravelCost(adjacent, targX, targY);
     
     adjacent.prior      = prior;
     adjacent.costBefore = costBefore;
@@ -238,6 +234,7 @@ bool addToAgenda(
     
     search.usageBitmap[adjacent.gridIndex] = OPEN;
     search.agenda.push(&adjacent);
+    search.visited.push_front(&adjacent);
     
     #if debugMode
     printEntry("\n  Pushed to agenda: ", adjacent, true);
@@ -247,12 +244,12 @@ bool addToAgenda(
 }
 
 
-void addAdjacentEntries(Entry &point, Entry &target, MapSearch &search) {
+void addAdjacentEntries(Entry &point, int targX, int targY, MapSearch &search) {
     for (int n = NUM_ADJ; n-- > 0;) {
         const int x = X_ADJ[n] + point.x, y = Y_ADJ[n] + point.y;
         Entry* adjacent = entryAt(x, y, search);
-        if (adjacent == nullptr || (*adjacent).blocked) continue;
-        addToAgenda(*adjacent, search, target, &point);
+        if (adjacent == nullptr) continue;
+        addToAgenda(*adjacent, &point, targX, targY, search);
     }
 }
 
@@ -275,19 +272,16 @@ int FindPath(
     initMap(search, nMapWidth, nMapHeight, pMap);
     
     Entry* starts  = entryAt(nStartX , nStartY , search);
-    Entry* target  = entryAt(nTargetX, nTargetY, search);
     Entry* best    = starts;
     bool   success = false;
     
     #if debugMode
-    printEntry("\n\nTARGET POINT IS:   ", *target, true);
     printEntry("\n\nSTARTING POINT IS: ", *starts, true);
-    
     int safeLimit = (search.wide * search.high * 2), stepCount = 0;
     if (shouldLimitPath && safeLimit > pathLimit) safeLimit = pathLimit;
     #endif
     
-    addToAgenda(*starts, search, *target, nullptr);
+    addToAgenda(*starts, nullptr, nTargetX, nTargetY, search);
     
     while (search.agenda.size() > 0) {
         
@@ -307,7 +301,7 @@ int FindPath(
         printEntry("\n\nNext entry is: ", *next, true);
         #endif
         
-        if (next == target) {
+        if ((*next).x == nTargetX && (*next).y == nTargetY) {
             success = true;
             best    = next;
             break;
@@ -315,11 +309,10 @@ int FindPath(
         else if ((*best).costAfter > (*next).costAfter) {
             best = next;
         }
-        
-        addAdjacentEntries(*next, *target, search);
+        addAdjacentEntries(*next, nTargetX, nTargetY, search);
     }
     
-    std::list <Entry*> path;
+    List path;
     while (best != nullptr && best != starts) {
         path.push_front(best);
         best = (*best).prior;

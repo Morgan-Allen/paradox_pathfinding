@@ -141,9 +141,11 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 100);
     //*/
     
-    //LoadedMap map;
-    //loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
-    //attemptPathing(map, 200);
+    /*
+    LoadedMap map;
+    loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
+    attemptPathing(map, 200);
+    //*/
     
     testAllMapsInDirectory("pathing maps/room_maps/");
 }
