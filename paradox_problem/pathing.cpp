@@ -3,8 +3,7 @@
 //  paradox_problem
 //
 //  Created by Morgan Allen on 08/10/2015.
-//  Copyright (c) 2015 Inhance. All rights reserved.
-//
+
 
 #include "pathing.h"
 #include <iostream>

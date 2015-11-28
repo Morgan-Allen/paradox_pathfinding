@@ -11,6 +11,7 @@
 		778F2D531BC72945003D1D64 /* pathing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 778F2D511BC72945003D1D64 /* pathing.cpp */; };
 		77F3EBB91BC7FB6B003B3E04 /* loaded_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77F3EBB71BC7FB6B003B3E04 /* loaded_map.cpp */; };
 		77F3EBBF1BC84CD0003B3E04 /* pathing maps in CopyFiles */ = {isa = PBXBuildFile; fileRef = 77F3EBBC1BC84621003B3E04 /* pathing maps */; };
+		AD4579561C0A534600FE1464 /* pathing2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD4579541C0A534600FE1464 /* pathing2.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,6 +37,8 @@
 		77F3EBB81BC7FB6B003B3E04 /* loaded_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = loaded_map.h; sourceTree = "<group>"; };
 		77F3EBBB1BC84012003B3E04 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		77F3EBBC1BC84621003B3E04 /* pathing maps */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "pathing maps"; sourceTree = "<group>"; };
+		AD4579541C0A534600FE1464 /* pathing2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pathing2.cpp; sourceTree = "<group>"; };
+		AD4579551C0A534600FE1464 /* pathing2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pathing2.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +73,8 @@
 		770967AD1BC5846500F3BAFA /* paradox_problem */ = {
 			isa = PBXGroup;
 			children = (
+				AD4579541C0A534600FE1464 /* pathing2.cpp */,
+				AD4579551C0A534600FE1464 /* pathing2.h */,
 				778F2D511BC72945003D1D64 /* pathing.cpp */,
 				778F2D521BC72945003D1D64 /* pathing.h */,
 				77F3EBB71BC7FB6B003B3E04 /* loaded_map.cpp */,
@@ -138,6 +143,7 @@
 			files = (
 				770967AF1BC5846500F3BAFA /* main.cpp in Sources */,
 				77F3EBB91BC7FB6B003B3E04 /* loaded_map.cpp in Sources */,
+				AD4579561C0A534600FE1464 /* pathing2.cpp in Sources */,
 				778F2D531BC72945003D1D64 /* pathing.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
