@@ -39,14 +39,17 @@ inline int yFromGrid(const int gridIndex, const int wide) {
     return (gridIndex / wide);
 }
 
+
 struct Entry {
     
     //  Permanent data-
     int x, y, gridIndex;
     
     //  Mutable search-related data-
-    Entry *prior;
-    int costTotal, costBefore, costAfter;
+    Entry *prior     = nullptr;
+    float costBefore = -1;
+    float costAfter  = -1;
+    float costTotal  = -1;
 };
 
 struct Comparison {
@@ -106,8 +109,8 @@ Entry* entryAt(const int x, const int y, MapSearch &search) {
     
     Entry* made = new Entry;
     (*made).gridIndex = index;
-    //(*made).x         = x;
-    //(*made).y         = y;
+    (*made).x         = x;
+    (*made).y         = y;
     search.usageBitmap[index] = OPEN;
     return made;
 }
@@ -151,11 +154,14 @@ void printAgenda(const char *intro, MapSearch &search) {
     while (copy.size() > 0) {
         Entry *next = copy.top();
         copy.pop();
+        
         float cost = (*next).costTotal;
+        Entry *gridded = entryAt((*next).x, (*next).y, search);
         
         printEntry("\n    ", *next, false);
         std::cout << " (" << cost << ")";
         
+        if (gridded != next) std::cout << " MISMATCH WITH GRID";
         if (lastCost != -1 && cost < lastCost) std::cout << " OUT OF ORDER";
         lastCost = cost;
     }
@@ -212,9 +218,9 @@ static const int
     Y_ADJ[]    = {  0,  1,  0, -1 };
 
 
-int guessTravelCost(Entry &orig, int targX, int targY) {
-    int xd = orig.x - targX, yd = orig.y - targY;
-    return abs(xd) + abs(yd);
+float guessTravelCost(Entry &orig, int targX, int targY) {
+    float xd = orig.x - targX, yd = orig.y - targY;
+    return (fabs(xd) + fabs(yd)) * 0.8f;
 }
 
 
