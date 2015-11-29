@@ -20,18 +20,6 @@ void setupThreads(MapSearch &map) {
     //  TODO:  Generate N+1 threads, where N is the number of cores, and pray
     //  that they get used efficiently.  Not much you can do otherwise.
     const int numCores = std::thread::hardware_concurrency();
-    
-    //  A single agenda only works nicely with a single thread.  There just
-    //  isn't a huge amount of work aside from pushes and pops.
-    
-    //  Keep a buffer of popped tiles?  Distribute those between threads?  Add
-    //  to another buffer as they trickle in, and merge as you get time?
-    
-    //  That way you can at least split up the work of pushes/pops vs. getting
-    //  neighbours.  And as long as you followed up any more promising tiles
-    //  found after the target was encountered, you'd still be guaranteed an
-    //  optimal solution.
-    
-    //  But you still couldn't have more than one thread handling the pushes &
-    //  pops.
+
+    If there's only the two lists to work with, though, that simplifies matters.
 }

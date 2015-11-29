@@ -62,17 +62,12 @@ static const int
 static const int
     ENTER_COST      = 1,
     GENERATION_DIFF = 2;
-static const int
-    NUM_ADJ    = 4,
-    X_ADJ[]    = {  1,  0, -1,  0 },
-    Y_ADJ[]    = {  0,  1,  0, -1 };
 
 
 /*  Records a point to search within the grid.
  */
 struct Entry {
     short x, y;
-    int index;
 };
 
 typedef std::stack <Entry*> List;
@@ -117,39 +112,44 @@ int indexFor(const int x, const int y, const int wide, const int high) {
 }
 
 
-inline int indexFor(const int x, const int y, const MapSearch &search) {
+inline int indexFor(const short x, const short y, const MapSearch &search) {
     //
-    //  Do some basic bounds-checking before returning row-major coords:
-    if (x < 0 || x >= search.wide) return OFF_GRID;
-    if (y < 0 || y >= search.high) return OFF_GRID;
+    //  Return row-major coords-
     return (y * search.wide) + x;
 }
 
 
-inline void addEntries(const Entry &entry, const MapSearch &search) {
+inline void tryEntry(
+    const MapSearch &search, const short x, const short y, const char dir
+) {
     //
-    //  We take each of the compass-point directions and calculate coords
-    //  and index within the grid.
-    for (int n = NUM_ADJ; n-- > 0;) {
-        const short
-            x = X_ADJ[n] + entry.x,
-            y = Y_ADJ[n] + entry.y;
-        const int index = indexFor(x, y, search);
-        //
-        //  If the point is blocked, off-grid, or already searched, skip it.
-        if (index == OFF_GRID || search.usageMask[index] != OPEN) continue;
-        //
-        //  Otherwise, create a new entry:
-        Entry *made = new Entry { x, y, index };
-        search.usageMask[index] = MARKED + n;
-        //
-        //  If the cost-estimate is no worse than the current best estimate,
-        //  push it onto the first generation- otherwise keep it 'in reserve.'
-        const int cost = estimate(x, y, search) + ENTER_COST;
-        const bool firstGen = cost == search.bestEstimate;
-        if (firstGen) (*search.firstGen ).push(made);
-        else          (*search.secondGen).push(made);
-    }
+    //  If the point is blocked, off-grid, or already searched, skip it.
+    const int index = indexFor(x, y, search);
+    if (search.usageMask[index] != OPEN) return;
+    //
+    //  Otherwise, create a new entry:
+    Entry *made = new Entry { x, y };
+    search.usageMask[index] = MARKED + dir;
+    //
+    //  If the cost-estimate is no worse than the current best estimate,
+    //  push it onto the first generation- otherwise keep it in reserve.
+    const int cost = estimate(x, y, search) + ENTER_COST;
+    const bool firstGen = cost == search.bestEstimate;
+    if (firstGen) (*search.firstGen ).push(made);
+    else          (*search.secondGen).push(made);
+}
+
+
+static const short
+    X_ADJ[] = {  1,  0, -1,  0 },
+    Y_ADJ[] = {  0,  1,  0, -1 };
+
+inline void addEntries(const Entry &entry, const MapSearch &search) {
+    const short x = entry.x, y = entry.y;
+    if (x < search.wide - 1) tryEntry(search, x + 1, y, 0);
+    if (y < search.high - 1) tryEntry(search, x, y + 1, 1);
+    if (x > 0              ) tryEntry(search, x - 1, y, 2);
+    if (y > 0              ) tryEntry(search, x, y - 1, 3);
 }
 
 
@@ -193,9 +193,9 @@ int FindPath(
     Entry *first = new Entry;
     (*first).x = search.origX;
     (*first).y = search.origY;
-    (*first).index      = indexFor(search.origX, search.origY, search);
+    int index  = indexFor(search.origX, search.origY, search);
     search.bestEstimate = estimate(search.origX, search.origY, search);
-    search.usageMask[(*first).index] = MARKED;
+    search.usageMask[index] = MARKED;
     (*search.firstGen).push(first);
     
     #if debugMode

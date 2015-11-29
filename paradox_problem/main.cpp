@@ -118,7 +118,9 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 200);
     //*/
     
+    //*
     testAllMapsInDirectory("pathing maps/room_maps/");
+    //*/
 }
 
 
