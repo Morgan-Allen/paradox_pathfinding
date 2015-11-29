@@ -11,21 +11,41 @@
 #include <iostream>
 
 
-
-//  TODO:  EXPLAIN THIS
-
-//  TODO:  Include debug functions.
-
+//
+//  This variant on the A* pathfinding algorithm relies on the following:
+//    *  Only directly-adjacent tiles on a unit-cost 2d-grid are accessible.
+//    *  Manhattan distance is therefore an optimistic heuristic.
+//    *  Step-costs (and distance-estimates) therefore have integer values.
+//    *  A* is only interested in the most promising node at a given time.
+//  Therefore-
+//    *  Successors from a given step will never have a _lower_ cost-estimate,
+//       because the heuristic is always optimistic.
+//    *  Successors from a given step never have a cost-estimate more than 2
+//       points higher- and in fact, can only be _exactly_ 2 points higher.
+//
+//        N            For successors NSEW of step '*', aiming toward X, E will
+//      W * E ---- X   be the closest and have the lowest estimate (C).  N & S
+//        S            will have estimates C + 2 (y+/-1, x-1), while W will
+//                     also have estimate C + 2 (x-2).
+//           /--- X
+//        N /          In this case, N & E are both 'closest', while W & S will
+//      W * E          have estimates C + 2 (x-1, y-1 in both cases.)
+//        S            In all cases, estimates are either C, or C + 2.
+//
+//    *  If we only investigate the most promising step at a time, we only need
+//       to keep a list of steps that are _equally_ promising (the first
+//       generation), or have a cost 2 points higher (the second generation).
+//       Anything less promising (more costly) will never be investigated until
+//       the first generation is exhausted, at which point we simply 'promote'
+//       the second generation and update our best-estimate.
+//
 //  NOTE:  Credit goes to mahrgell and ArcticReloaded on the paradox forums for
 //         dropping several hints on my head.
 
-
-
-
-//  TODO:  Consider using Stacks instead of Lists?
-
+//
 //  TODO:  In principle, this could be multithreaded relatively easily.  See if
-//  there's any gains from that?
+//         there's any gains from that?
+//  TODO:  Consider using Stacks instead of Lists?
 
 
 
