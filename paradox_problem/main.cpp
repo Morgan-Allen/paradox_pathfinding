@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 12);
     //*/
     
-    //*
+    /*
     unsigned char pMap[] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
@@ -118,7 +118,7 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 200);
     //*/
     
-    //testAllMapsInDirectory("pathing maps/room_maps/");
+    testAllMapsInDirectory("pathing maps/room_maps/");
 }
 
 

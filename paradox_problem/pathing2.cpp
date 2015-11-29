@@ -260,13 +260,13 @@ int doSearch(
     //
     //  Store as much of the path as can fit into the output buffer, clean up
     //  and return-
-    int outIndex = 0;
+    int outIndex = 0, pathLength = (int) pathIndices.size();
     while (outIndex < maxPathLength && ! pathIndices.empty()) {
         outBuffer[outIndex++] = pathIndices.front();
         pathIndices.pop_front();
     }
     cleanupMap(search);
-    return outIndex;
+    return pathLength;
 }
 
 
