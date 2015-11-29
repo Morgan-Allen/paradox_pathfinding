@@ -9,6 +9,7 @@
 #include <list>
 #include <cstdlib>
 #include <iostream>
+#include <cstring>
 
 
 //
@@ -187,7 +188,7 @@ int FindPath(
     search.targX   = nTargetX  ;
     search.targY   = nTargetY  ;
     search.usageMask = new unsigned char[mapArea];
-    memcpy(search.usageMask, pMap, mapArea * sizeof(char));
+    std::memcpy(search.usageMask, pMap, mapArea * sizeof(char));
     search.firstGen  = new List;
     search.secondGen = new List;
     //
