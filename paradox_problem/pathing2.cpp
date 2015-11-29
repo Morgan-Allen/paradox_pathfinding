@@ -7,6 +7,7 @@
 
 #include "pathing2.h"
 #include <list>
+#include <stack>
 #include <cstdlib>
 #include <iostream>
 #include <cstring>
@@ -46,7 +47,6 @@
 //
 //  TODO:  In principle, this could be multithreaded relatively easily.  See if
 //         there's any gains from that?
-//  TODO:  Consider using Stacks instead of Lists?
 
 
 
@@ -75,7 +75,7 @@ struct Entry {
     int index;
 };
 
-typedef std::list <Entry*> List;
+typedef std::stack <Entry*> List;
 
 
 /*  Stores most or all the state-variables associated with the search for ease
@@ -126,32 +126,29 @@ inline int indexFor(const int x, const int y, const MapSearch &search) {
 }
 
 
-void addEntries(Entry &entry, MapSearch &search) {
+inline void addEntries(const Entry &entry, const MapSearch &search) {
     //
     //  We take each of the compass-point directions and calculate coords
     //  and index within the grid.
     for (int n = NUM_ADJ; n-- > 0;) {
-        const int
+        const short
             x = X_ADJ[n] + entry.x,
-            y = Y_ADJ[n] + entry.y,
-            index = indexFor(x, y, search);
+            y = Y_ADJ[n] + entry.y;
+        const int index = indexFor(x, y, search);
         //
         //  If the point is blocked, off-grid, or already searched, skip it.
         if (index == OFF_GRID || search.usageMask[index] != OPEN) continue;
         //
         //  Otherwise, create a new entry:
-        Entry *entry = new Entry;
-        (*entry).x = x;
-        (*entry).y = y;
-        (*entry).index = index;
+        Entry *made = new Entry { x, y, index };
         search.usageMask[index] = MARKED + n;
         //
         //  If the cost-estimate is no worse than the current best estimate,
         //  push it onto the first generation- otherwise keep it 'in reserve.'
         const int cost = estimate(x, y, search) + ENTER_COST;
         const bool firstGen = cost == search.bestEstimate;
-        if (firstGen) (*search.firstGen ).push_front(entry);
-        else          (*search.secondGen).push_front(entry);
+        if (firstGen) (*search.firstGen ).push(made);
+        else          (*search.secondGen).push(made);
     }
 }
 
@@ -199,7 +196,7 @@ int FindPath(
     (*first).index      = indexFor(search.origX, search.origY, search);
     search.bestEstimate = estimate(search.origX, search.origY, search);
     search.usageMask[(*first).index] = MARKED;
-    (*search.firstGen).push_front(first);
+    (*search.firstGen).push(first);
     
     #if debugMode
     say << "\nBEGINNING SEARCH!";
@@ -223,8 +220,8 @@ int FindPath(
         #endif
         
         List* gen = search.firstGen;
-        Entry *next = (*gen).front();
-        (*gen).pop_front();
+        Entry *next = (*gen).top();
+        (*gen).pop();
         
         #if debugMode
         printEntry("\nNEXT ENTRY IS: ", *next);
@@ -327,13 +324,19 @@ void printAgenda(const char *intro, MapSearch &search) {
         intro << "\n  Agenda size: " <<
         (*search.firstGen).size() << " + " << (*search.secondGen).size()
     ;
+    
     say << "\n  Cost " << search.bestEstimate;
-    for (auto const& entry : (*search.firstGen)) {
-        printEntry("\n    ", *entry);
+    List copy1 = *search.firstGen;
+    while (! copy1.empty()) {
+        printEntry("\n    ", *copy1.top());
+        copy1.pop();
     }
+    
     say << "\n  Cost " << (search.bestEstimate + GENERATION_DIFF);
-    for (auto const& entry : (*search.secondGen)) {
-        printEntry("\n    ", *entry);
+    List copy2 = *search.secondGen;
+    while (! copy2.empty()) {
+        printEntry("\n    ", *copy2.top());
+        copy2.pop();
     }
 }
 
