@@ -27,7 +27,7 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     int output[outputLen];
     auto start = std::chrono::high_resolution_clock::now();
     
-    const int result = doSearch(
+    const int result = FindPath(
         map.origX, map.origY, map.destX, map.destY,
         map.mapData, map.mapWide, map.mapHigh,
         output, outputLen

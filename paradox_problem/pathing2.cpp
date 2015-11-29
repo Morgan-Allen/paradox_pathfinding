@@ -149,24 +149,25 @@ void printEntry(const char *intro, Entry &entry);
 void printAgenda(const char *intro, MapSearch &search);
 
 
-int doSearch(
-    const int origX, const int origY, const int targX, const int targY,
-    const unsigned char *rawData, const int mapWide, const int mapHigh,
-    int *outBuffer, const int maxPathLength
+int FindPath(
+    const int nStartX , const int nStartY ,
+    const int nTargetX, const int nTargetY,
+    const unsigned char *pMap, const int nMapWidth, const int nMapHeight,
+    int *pOutBuffer, const int nOutBufferSize
 ) {
     //
     //  Firstly, set up the Map-Search itself-
     MapSearch search;
-    const int mapArea = mapWide * mapHigh;
-    search.rawData = rawData;
-    search.wide    = mapWide;
-    search.high    = mapHigh;
-    search.origX   = origX  ;
-    search.origY   = origY  ;
-    search.targX   = targX  ;
-    search.targY   = targY  ;
+    const int mapArea = nMapWidth * nMapHeight;
+    search.rawData = pMap      ;
+    search.wide    = nMapWidth ;
+    search.high    = nMapHeight;
+    search.origX   = nStartX   ;
+    search.origY   = nStartY   ;
+    search.targX   = nTargetX  ;
+    search.targY   = nTargetY  ;
     search.usageMask = new unsigned char[mapArea];
-    memcpy(search.usageMask, rawData, mapArea * sizeof(char));
+    memcpy(search.usageMask, pMap, mapArea * sizeof(char));
     search.firstGen  = new List;
     search.secondGen = new List;
     //
@@ -261,8 +262,8 @@ int doSearch(
     //  Store as much of the path as can fit into the output buffer, clean up
     //  and return-
     int outIndex = 0, pathLength = (int) pathIndices.size();
-    while (outIndex < maxPathLength && ! pathIndices.empty()) {
-        outBuffer[outIndex++] = pathIndices.front();
+    while (outIndex < nOutBufferSize && ! pathIndices.empty()) {
+        pOutBuffer[outIndex++] = pathIndices.front();
         pathIndices.pop_front();
     }
     cleanupMap(search);

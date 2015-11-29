@@ -7,13 +7,11 @@
 #include <stdio.h>
 
 
-
 int indexFor(const int x, const int y, const int wide, const int high);
 
-int doSearch(
-    int origX, int origY, int targX, int targY,
-    const unsigned char *rawData, int mapWide, int mapHigh,
-    int *outBuffer, int maxPathLength
+int FindPath(
+    const int nStartX , const int nStartY ,
+    const int nTargetX, const int nTargetY,
+    const unsigned char *pMap, const int nMapWidth, const int nMapHeight,
+    int *pOutBuffer, const int nOutBufferSize
 );
-
-
