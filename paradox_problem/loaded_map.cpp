@@ -16,7 +16,8 @@
 #include <chrono>
 
 #include "loaded_map.h"
-#include "pathing.h"
+#include "pathing2.h"
+//#include "pathing.h"
 
 
 
@@ -26,7 +27,7 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     int output[outputLen];
     auto start = std::chrono::high_resolution_clock::now();
     
-    const int result = FindPath(
+    const int result = doSearch(
         map.origX, map.origY, map.destX, map.destY,
         map.mapData, map.mapWide, map.mapHigh,
         output, outputLen

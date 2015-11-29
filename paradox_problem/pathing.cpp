@@ -347,7 +347,7 @@ int FindPath(
     cleanupMap(search);
     return pathLength;
 }
-
+//*/
 
 
 

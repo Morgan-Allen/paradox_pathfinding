@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <set>
-#include "pathing.h"
+//#include "pathing.h"
 #include "loaded_map.h"
 
 
@@ -16,36 +16,7 @@
 int main(int argc, const char * argv[]) {
     
     
-    
-    /*
-    const int
-      mapW   = 4, mapH   = 4,
-      startX = 0, startY = 0,
-      endX   = 2, endY   = 0;
-    unsigned char map[] = {
-        1, 0, 1, 1,
-        1, 0, 0, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1
-    };
-    int outLen = 20, output[outLen];
-    //*/
-    
-    
-    /*
-    const int
-      mapW   = 3, mapH   = 3,
-      startX = 2, startY = 0,
-      endX   = 0, endY   = 2;
-    unsigned char map[] = {
-        0, 0, 1,
-        0, 1, 1,
-        1, 0, 1
-    };
-    int outLen = 12, output[outLen];
-    //*/
-    
-    /*
+    //*
     unsigned char mapData[] = {
         1, 1, 1, 1,
         0, 1, 0, 1,
@@ -147,7 +118,7 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 200);
     //*/
     
-    testAllMapsInDirectory("pathing maps/room_maps/");
+    //testAllMapsInDirectory("pathing maps/room_maps/");
 }
 
 

@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		770967AF1BC5846500F3BAFA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 770967AE1BC5846500F3BAFA /* main.cpp */; };
-		778F2D531BC72945003D1D64 /* pathing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 778F2D511BC72945003D1D64 /* pathing.cpp */; };
 		77F3EBB91BC7FB6B003B3E04 /* loaded_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77F3EBB71BC7FB6B003B3E04 /* loaded_map.cpp */; };
 		77F3EBBF1BC84CD0003B3E04 /* pathing maps in CopyFiles */ = {isa = PBXBuildFile; fileRef = 77F3EBBC1BC84621003B3E04 /* pathing maps */; };
 		AD4579561C0A534600FE1464 /* pathing2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AD4579541C0A534600FE1464 /* pathing2.cpp */; };
@@ -144,7 +143,6 @@
 				770967AF1BC5846500F3BAFA /* main.cpp in Sources */,
 				77F3EBB91BC7FB6B003B3E04 /* loaded_map.cpp in Sources */,
 				AD4579561C0A534600FE1464 /* pathing2.cpp in Sources */,
-				778F2D531BC72945003D1D64 /* pathing.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,13 +8,18 @@
 #include "pathing2.h"
 #include <list>
 #include <cstdlib>
+#include <iostream>
 
 
 
 //  TODO:  EXPLAIN THIS
 
+//  TODO:  Include debug functions.
+
 //  NOTE:  Credit goes to mahrgell and ArcticReloaded on the paradox forums for
 //         dropping several hints on my head.
+
+
 
 
 //  TODO:  Consider using Stacks instead of Lists?
@@ -28,9 +33,11 @@
  *  over neighbours:
  */
 static const int
-    BLOCKED =   0,
-    OPEN    =   1,
-    MARKED  =   2,
+    OFF_GRID = -1,
+    BLOCKED  =  0,
+    OPEN     =  1,
+    MARKED   =  2;
+static const int
     ENTER_COST      = 1,
     GENERATION_DIFF = 2;
 static const int
@@ -46,12 +53,12 @@ struct Entry {
     int index;
 };
 
-
-/*  Stores most or all the state-variables associated with the search for ease
- *  of later reference-
- */
 typedef std::list <Entry*> List;
 
+
+/*  Stores most or all the state-variables associated with the search for ease
+ *  of later reference.
+ */
 struct MapSearch {
     
     int wide, high;
@@ -74,7 +81,6 @@ void cleanupMap(MapSearch &map) {
 
 /*  Helper methods for the search algorithm-
  */
-
 inline int estimate(const int x, const int y, const MapSearch &search) {
     //
     //  Just return manhattan distance.
@@ -82,11 +88,18 @@ inline int estimate(const int x, const int y, const MapSearch &search) {
 }
 
 
+int indexFor(const int x, const int y, const int wide, const int high) {
+    //
+    //  Useful for external debug functions...
+    return (y * wide) + x;
+}
+
+
 inline int indexFor(const int x, const int y, const MapSearch &search) {
     //
     //  Do some basic bounds-checking before returning row-major coords:
-    if (x < 0 || x >= search.wide) return -1;
-    if (y < 0 || y >= search.high) return -1;
+    if (x < 0 || x >= search.wide) return OFF_GRID;
+    if (y < 0 || y >= search.high) return OFF_GRID;
     return (y * search.wide) + x;
 }
 
@@ -102,7 +115,7 @@ void addEntries(Entry &entry, MapSearch &search) {
             index = indexFor(x, y, search);
         //
         //  If the point is blocked, off-grid, or already searched, skip it.
-        if (index < 0 || search.rawData[index] == 0) continue;
+        if (index == OFF_GRID || search.rawData[index] == BLOCKED) continue;
         if (search.usageMask[index] >= MARKED) continue;
         //
         //  Otherwise, create a new entry:
@@ -122,10 +135,22 @@ void addEntries(Entry &entry, MapSearch &search) {
 }
 
 
+/*  Finally, the main search method itself, along with some debug options (and
+ *  prototypes for use below.)
+ */
+
+#define debugMode       true
+#define pathLimit       20
+#define shouldLimitPath false
+
+void printEntry(const char *intro, Entry &entry);
+void printAgenda(const char *intro, MapSearch &search);
+
+
 int doSearch(
     int origX, int origY, int targX, int targY,
-    int mapWide, int mapHigh, const unsigned char *rawData,
-    int maxPathLength, int *outBuffer
+    const unsigned char *rawData, int mapWide, int mapHigh,
+    int *outBuffer, int maxPathLength
 ) {
     //
     //  Firstly, set up the Map-Search itself-
@@ -155,9 +180,19 @@ int doSearch(
     //  Then pop successive entries off the first generation until exhausted:
     bool success = false;
     while (true) {
+        
+        #if debugMode
+        printAgenda("\n\nBEGINNING NEXT STEP...", search);
+        #endif
+        
         List* gen = search.firstGen;
         Entry *next = (*gen).front();
         (*gen).pop_front();
+        
+        #if debugMode
+        printEntry("\nNEXT ENTRY IS: ", *next);
+        #endif
+        
         //
         //  If you've reached the destination, quit and report success (and
         //  delete the popped entry either way.)
@@ -211,9 +246,27 @@ int doSearch(
 
 
 
+/*  Assorted printout functions used in debugging:
+ */
+void printEntry(const char *intro, Entry &entry) {
+    std::cout << intro << entry.x << "|" << entry.y; return;
+}
 
 
-
+void printAgenda(const char *intro, MapSearch &search) {
+    std::cout <<
+        intro << "\n  Agenda size: " <<
+        (*search.firstGen).size() << " + " << (*search.secondGen).size()
+    ;
+    std::cout << "\n  Cost " << search.bestEstimate;
+    for (auto const& entry : (*search.firstGen)) {
+        printEntry("\n    ", *entry);
+    }
+    std::cout << "\n  Cost " << (search.bestEstimate + GENERATION_DIFF);
+    for (auto const& entry : (*search.secondGen)) {
+        printEntry("\n    ", *entry);
+    }
+}
 
 
 
