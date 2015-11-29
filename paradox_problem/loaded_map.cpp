@@ -35,7 +35,7 @@ void attemptPathing(LoadedMap &map, int outputLen) {
     auto end = std::chrono::high_resolution_clock::now();
     long long taken = std::chrono::duration_cast <std::chrono::milliseconds> (end - start).count();
     
-    std::cout << "\n  Search completed.";
+    std::cout << "\n\n  Search completed.";
     std::cout << "\n  Path length: " << result;
     std::cout << "\n  Time taken (ms): " << taken;
     std::cout << " (" << (result >= 0 ? "passed" : "failed") << ")";

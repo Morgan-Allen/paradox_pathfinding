@@ -34,6 +34,7 @@
  */
 static const int
     OFF_GRID = -1,
+    NO_PATH  = -1,
     BLOCKED  =  0,
     OPEN     =  1,
     MARKED   =  2;
@@ -63,7 +64,7 @@ struct MapSearch {
     
     int wide, high;
     const unsigned char *rawData;
-    signed char *usageMask;
+    unsigned char *usageMask;
     
     int origX, origY;
     int targX, targY;
@@ -115,8 +116,7 @@ void addEntries(Entry &entry, MapSearch &search) {
             index = indexFor(x, y, search);
         //
         //  If the point is blocked, off-grid, or already searched, skip it.
-        if (index == OFF_GRID || search.rawData[index] == BLOCKED) continue;
-        if (search.usageMask[index] >= MARKED) continue;
+        if (index == OFF_GRID || search.usageMask[index] != OPEN) continue;
         //
         //  Otherwise, create a new entry:
         Entry *entry = new Entry;
@@ -139,18 +139,20 @@ void addEntries(Entry &entry, MapSearch &search) {
  *  prototypes for use below.)
  */
 
-#define debugMode       true
-#define pathLimit       20
-#define shouldLimitPath false
+#define debugMode       false
+#define loopLimit       20
+#define shouldLimitLoop false
+#define say             std::cout
 
+void printMap(MapSearch &search);
 void printEntry(const char *intro, Entry &entry);
 void printAgenda(const char *intro, MapSearch &search);
 
 
 int doSearch(
-    int origX, int origY, int targX, int targY,
-    const unsigned char *rawData, int mapWide, int mapHigh,
-    int *outBuffer, int maxPathLength
+    const int origX, const int origY, const int targX, const int targY,
+    const unsigned char *rawData, const int mapWide, const int mapHigh,
+    int *outBuffer, const int maxPathLength
 ) {
     //
     //  Firstly, set up the Map-Search itself-
@@ -163,8 +165,8 @@ int doSearch(
     search.origY   = origY  ;
     search.targX   = targX  ;
     search.targY   = targY  ;
-    search.usageMask = new signed char[mapArea];
-    memccpy(search.usageMask, rawData, mapArea, sizeof(char));
+    search.usageMask = new unsigned char[mapArea];
+    memcpy(search.usageMask, rawData, mapArea * sizeof(char));
     search.firstGen  = new List;
     search.secondGen = new List;
     //
@@ -176,6 +178,14 @@ int doSearch(
     search.bestEstimate = estimate(search.origX, search.origY, search);
     search.usageMask[(*first).index] = MARKED;
     (*search.firstGen).push_front(first);
+    
+    #if debugMode
+    say << "\nBEGINNING SEARCH!";
+    printMap(search);
+    printEntry("\n  First Entry: ", *first);
+    say << "\n  Target point: " << search.targX << "|" << search.targY;
+    int loopCount = 0;
+    #endif
     //
     //  Then pop successive entries off the first generation until exhausted:
     bool success = false;
@@ -183,6 +193,11 @@ int doSearch(
         
         #if debugMode
         printAgenda("\n\nBEGINNING NEXT STEP...", search);
+        loopCount++;
+        if (shouldLimitLoop && loopCount > loopLimit) {
+            say << "\nLoop limit exceeded- will bail.";
+            break;
+        }
         #endif
         
         List* gen = search.firstGen;
@@ -218,15 +233,25 @@ int doSearch(
     //  In the event of failure, just clean up and return.
     if (! success) {
         cleanupMap(search);
-        return -1;
+        return NO_PATH;
     }
     //
     //  Otherwise, use directional cues in the usageMask to trace a path back
     //  from the destination to the origin point...
-    int pathLength = 0, currX = search.targX, currY = search.targY;
+    int currX = search.targX, currY = search.targY;
     std::list <int> pathIndices;
+    
+    #if debugMode
+    say << "\n\nTRACING PATH";
+    #endif
+    
     while (currX != search.origX || currY != search.origY) {
         const int index = indexFor(currX, currY, search);
+        
+        #if debugMode
+        say << "\n  " << currX << "|" << currY << " (" << index << ")";
+        #endif
+        
         const int dir = search.usageMask[index] - MARKED;
         currX -= X_ADJ[dir];
         currY -= Y_ADJ[dir];
@@ -237,32 +262,54 @@ int doSearch(
     //  and return-
     int outIndex = 0;
     while (outIndex < maxPathLength && ! pathIndices.empty()) {
-        outBuffer[outIndex] = pathIndices.front();
+        outBuffer[outIndex++] = pathIndices.front();
         pathIndices.pop_front();
     }
     cleanupMap(search);
-    return pathLength;
+    return outIndex;
 }
 
 
 
 /*  Assorted printout functions used in debugging:
  */
+void printMap(MapSearch &search) {
+    say << "\n  Map display: ";
+    int numOpen = 0;
+    for (int y = search.high; y-- > 0;) {
+        say << "\n    ";
+        for (int x = 0; x < search.wide; x++) {
+            const int index = indexFor(x, y, search);
+            const int mask = search.usageMask[index];
+            if (mask == OPEN) numOpen++;
+            
+            char mark = -1;
+            if (x == search.origX && y == search.origY) mark = 'O';
+            if (x == search.targX && y == search.targY) mark = 'X';
+            if (mark == -1 && mask >= MARKED) mark += mask - MARKED;
+            if (mark == -1) mark = mask == BLOCKED ? '@' : '.';
+            say << mark << " ";
+        }
+    }
+    say << "\n  Tiles open: " << numOpen;
+}
+
+
 void printEntry(const char *intro, Entry &entry) {
-    std::cout << intro << entry.x << "|" << entry.y; return;
+    say << intro << entry.x << "|" << entry.y; return;
 }
 
 
 void printAgenda(const char *intro, MapSearch &search) {
-    std::cout <<
+    say <<
         intro << "\n  Agenda size: " <<
         (*search.firstGen).size() << " + " << (*search.secondGen).size()
     ;
-    std::cout << "\n  Cost " << search.bestEstimate;
+    say << "\n  Cost " << search.bestEstimate;
     for (auto const& entry : (*search.firstGen)) {
         printEntry("\n    ", *entry);
     }
-    std::cout << "\n  Cost " << (search.bestEstimate + GENERATION_DIFF);
+    say << "\n  Cost " << (search.bestEstimate + GENERATION_DIFF);
     for (auto const& entry : (*search.secondGen)) {
         printEntry("\n    ", *entry);
     }
