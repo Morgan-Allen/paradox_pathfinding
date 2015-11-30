@@ -44,10 +44,6 @@
 //  NOTE:  Credit goes to mahrgell and ArcticReloaded on the paradox forums for
 //         dropping several hints on my head.
 
-//
-//  TODO:  In principle, this could be multithreaded relatively easily.  See if
-//         there's any gains from that?
-
 
 
 /*  Fixed constants that help mark progress within the search-grid and iterate
