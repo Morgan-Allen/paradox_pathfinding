@@ -112,13 +112,17 @@ int main(int argc, const char * argv[]) {
     attemptPathing(map, 100);
     //*/
     
-    /*
+    //*
     LoadedMap map;
-    loadMapFrom("pathing maps/random_maps/random512-40-0.map", map);
+    loadMapFrom("pathing maps/small_test_map.map", map);
+    map.origX = 1 ;
+    map.origY = 14;
+    map.destX = 42;
+    map.destY = 11;
     attemptPathing(map, 200);
     //*/
     
-    //*
+    /*
     testAllMapsInDirectory("pathing maps/room_maps/");
     //*/
 }

@@ -156,10 +156,10 @@ LoadedMap* loadMapFrom(const char* fileName, LoadedMap &map) {
         srand((int) time(NULL));
         int origIndex = freeTiles[rand() % freeTiles.size()];
         map.origX = origIndex % map.mapWide;
-        map.origY = origIndex / map.mapHigh;
+        map.origY = origIndex / map.mapWide;
         int destIndex = freeTiles[rand() % freeTiles.size()];
         map.destX = destIndex % map.mapWide;
-        map.destY = destIndex / map.mapHigh;
+        map.destY = destIndex / map.mapWide;
     }
     
     return &map;
